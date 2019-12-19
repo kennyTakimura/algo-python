@@ -1,77 +1,60 @@
 # queueに入る最大数
 MAX = 100000
-HEAD = 0
-TAIL = 1
 # queueは配列で表現できる
-queue = ['' for i in range(MAX+1)]  # 0の要素は参照しない
-# 結果
-res = []
+queue = []
+# 全体の経過時間
+total_time = 0
 
 
 # プロセスを表現するためのクラス
 class Process:
-    def __init__(self, str):
-        v = str.split(' ')
+    def __init__(self, string):
+        v = string.split(' ')
         self.name = v[0]
         self.time = int(v[1])
 
 
 def enqueue(n):
-    global HEAD
-    if HEAD == MAX:
-        # 現在のHEADがMAXに達したらHEADを0にリセット
-        HEAD = 1
-        queue[HEAD] = n
-    # HEADをインクリメントしてから配列に追加
-    HEAD += 1
-    queue[HEAD] = n
+    global queue
+    if len(queue) == MAX:
+        raise OverflowError
+    queue.append(n)
+    return
 
 
 def dequeue():
-    global TAIL
-    if TAIL == MAX:
-        # 現在のTAILがMAXの場合0にリセット
-        v = queue[TAIL]
-        TAIL = 1
-        return v
-    v = queue[TAIL]
-    TAIL += 1
+    global queue
+    if len(queue) == 0:
+        return None
+    v = queue[0]
+    del queue[0]
     return v
 
 
-def solve(A):
-    for i in A:
-        if i == '+':
-            # 2つpopして足し算、結果をpush
-            # a = pop()
-            # b = pop()
-            # push(a + b)
-            pass
-
-        elif i == '-':
-            # 2つpopして引き算、結果をpush
-            # a = pop()
-            # b = pop()
-            # push(b - a)
-            pass
-
-        elif i == '*':
-            # 2つpopして掛け算、結果をpush
-            # a = pop()
-            # b = pop()
-            # push(a * b)
-            pass
-
+def solve(q):
+    # 先頭のプロセスを取得し、時間を計算して処理が完了すればコンソールに表示
+    # 時間を計算し完了しなければ再度queueの最後に追加
+    global total_time
+    global queue
+    while len(queue) != 0:
+        p = dequeue()
+        progress = p.time - q
+        if progress <= 0:
+            print('name: {0}, proceeding time: {1}'.format(p.name, total_time + p.time))
+            total_time += p.time
         else:
-            # 数字をpush
-            # push(int(i))
-            pass
+            total_time += q
+            p.time -= q
+            enqueue(p)
 
 
 # main
 if __name__ == '__main__':
+    # format: n q
     first_line = input().split(' ')
     n = int(first_line[0])
     q = int(first_line[1])
-    p = [Process(input()) for i in range(n)]
-    solve(p)
+    # format: process_name time
+    for i in range(n):
+        enqueue(Process(input()))
+    solve(q)
